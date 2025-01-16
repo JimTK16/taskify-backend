@@ -12,19 +12,47 @@ const mongoClientInstance = new MongoClient(env.MONGODB_URI, {
 })
 
 export const CONNECT_DB = async () => {
-  await mongoClientInstance.connect()
+  try {
+    // Connect to MongoDB server
+    await mongoClientInstance.connect()
 
-  taskifyDatabaseInstance = mongoClientInstance.db(env.DATABASE_NAME)
+    // Get database reference
+    taskifyDatabaseInstance = mongoClientInstance.db(env.DATABASE_NAME)
+
+    // Actually verify we can interact with the database
+    await taskifyDatabaseInstance.command({ ping: 1 })
+
+    // Optional: Check if any collections exist
+    const collections = await taskifyDatabaseInstance
+      .listCollections()
+      .toArray()
+
+    // console.log(`Connected to Database: ${env.DATABASE_NAME}`)
+    // console.log(`Found ${collections.length} collections`)
+    // console.log(collections)
+  } catch (error) {
+    console.error(`Error connecting to database: ${error.message}`)
+    // Clean up on error
+    taskifyDatabaseInstance = null
+    await mongoClientInstance.close()
+    throw error
+  }
 }
 
 export const GET_DB = () => {
   if (!taskifyDatabaseInstance) {
     throw new Error('Must connect to Database first!')
   }
-
   return taskifyDatabaseInstance
 }
 
 export const CLOSE_DB = async () => {
-  await mongoClientInstance.close()
+  try {
+    await mongoClientInstance.close()
+    taskifyDatabaseInstance = null
+    console.log('Database connection closed')
+  } catch (error) {
+    console.error('Error closing database connection:', error)
+    throw error
+  }
 }

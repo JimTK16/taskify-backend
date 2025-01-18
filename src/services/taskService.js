@@ -1,6 +1,6 @@
 import { taskModel } from '~/models/taskModel'
 
-const createNewTask = async (reqBody) => {
+const createNew = async (reqBody) => {
   try {
     const newTask = { ...reqBody }
 
@@ -12,6 +12,17 @@ const createNewTask = async (reqBody) => {
   }
 }
 
+const deleteTask = async (id) => {
+  try {
+    await taskModel.deleteOneById(id)
+
+    return { deleteResult: 'task deleted' }
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 export const taskService = {
-  createNewTask
+  createNew,
+  deleteTask
 }

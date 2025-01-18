@@ -3,7 +3,7 @@ import { taskService } from '~/services/taskService'
 
 const createNew = async (req, res, next) => {
   try {
-    const createdTask = await taskService.createNewTask(req.body)
+    const createdTask = await taskService.createNew(req.body)
 
     res.status(StatusCodes.CREATED).json(createdTask)
   } catch (error) {
@@ -11,6 +11,18 @@ const createNew = async (req, res, next) => {
   }
 }
 
+const deleteTask = async (req, res, next) => {
+  try {
+    const taskId = req.params.id
+    const result = await taskService.deleteTask(taskId)
+
+    res.status(StatusCodes.OK).json(result)
+  } catch (error) {
+    next(error)
+  }
+}
+
 export const taskController = {
-  createNew
+  createNew,
+  deleteTask
 }

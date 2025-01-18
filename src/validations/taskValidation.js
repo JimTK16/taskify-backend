@@ -27,6 +27,30 @@ const createNew = async (req, res, next) => {
   }
 }
 
+const deleteTask = async (req, res, next) => {
+  const correctCondition = Joi.object({
+    id: Joi.string()
+      .required()
+      .pattern(OBJECT_ID_RULE)
+      .message(OBJECT_ID_RULE_MESSAGE)
+  })
+  try {
+    await correctCondition.validateAsync(req.params, {
+      abortEarly: false
+    })
+
+    next()
+  } catch (error) {
+    const errorMessage = new Error(error).message
+    const customError = new ApiError(
+      StatusCodes.UNPROCESSABLE_ENTITY,
+      errorMessage
+    )
+    next(customError)
+  }
+}
+
 export const taskValidation = {
-  createNew
+  createNew,
+  deleteTask
 }

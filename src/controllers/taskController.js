@@ -11,6 +11,16 @@ const createNew = async (req, res, next) => {
   }
 }
 
+const update = async (req, res, next) => {
+  try {
+    const taskId = req.params.id
+    const updatedTask = await taskService.update(taskId, req.body)
+
+    res.status(StatusCodes.OK).json(updatedTask)
+  } catch (error) {
+    next(error)
+  }
+}
 const deleteTask = async (req, res, next) => {
   try {
     const taskId = req.params.id
@@ -24,5 +34,6 @@ const deleteTask = async (req, res, next) => {
 
 export const taskController = {
   createNew,
-  deleteTask
+  deleteTask,
+  update
 }

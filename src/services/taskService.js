@@ -12,6 +12,17 @@ const createNew = async (reqBody) => {
   }
 }
 
+const update = async (id, reqBody) => {
+  try {
+    const updateData = { ...reqBody, updatedAt: Date.now() }
+
+    const updatedTask = await taskModel.update(id, updateData)
+
+    return updatedTask
+  } catch (error) {
+    throw new Error(error)
+  }
+}
 const deleteTask = async (id) => {
   try {
     await taskModel.deleteOneById(id)
@@ -24,5 +35,6 @@ const deleteTask = async (id) => {
 
 export const taskService = {
   createNew,
-  deleteTask
+  deleteTask,
+  update
 }

@@ -5,8 +5,7 @@ import { taskValidation } from '~/validations/taskValidation'
 const Router = express.Router()
 
 Router.route('/').post(taskValidation.createNew, taskController.createNew)
-Router.route('/:id').delete(
-  taskValidation.deleteTask,
-  taskController.deleteTask
-)
+Router.route('/:id')
+  .put(taskValidation.update, taskController.update)
+  .delete(taskValidation.deleteTask, taskController.deleteTask)
 export const taskRoute = Router

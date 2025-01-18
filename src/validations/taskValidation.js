@@ -27,6 +27,39 @@ const createNew = async (req, res, next) => {
   }
 }
 
+const update = async (req, res, next) => {
+  const bodySchema = Joi.object({
+    title: Joi.string().required().min(3).trim().strict(),
+    description: Joi.string().allow('').optional()
+  })
+
+  const paramsSchema = Joi.object({
+    id: Joi.string()
+      .required()
+      .pattern(OBJECT_ID_RULE)
+      .message(OBJECT_ID_RULE_MESSAGE)
+  })
+
+  try {
+    await Promise.all([
+      bodySchema.validateAsync(req.body, {
+        abortEarly: false
+      }),
+      paramsSchema.validateAsync(req.params, {
+        abortEarly: false
+      })
+    ])
+    next()
+  } catch (error) {
+    const errorMessage = new Error(error).message
+    const customError = new ApiError(
+      StatusCodes.UNPROCESSABLE_ENTITY,
+      errorMessage
+    )
+    next(customError)
+  }
+}
+
 const deleteTask = async (req, res, next) => {
   const correctCondition = Joi.object({
     id: Joi.string()
@@ -52,5 +85,6 @@ const deleteTask = async (req, res, next) => {
 
 export const taskValidation = {
   createNew,
-  deleteTask
+  deleteTask,
+  update
 }

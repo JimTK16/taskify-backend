@@ -89,9 +89,19 @@ const deleteOneById = async (id) => {
   try {
     const result = await GET_DB()
       .collection(TASK_COLLECTION_NAME)
-      .deleteOne({
-        _id: ObjectId.createFromHexString(id)
-      })
+      .findOneAndUpdate(
+        {
+          _id: ObjectId.createFromHexString(id)
+        },
+        {
+          $set: {
+            deletedAt: Date.now()
+          }
+        },
+        {
+          returnDocument: 'after'
+        }
+      )
     return result
   } catch (error) {
     throw new Error(error)

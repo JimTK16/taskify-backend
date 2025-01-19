@@ -18,8 +18,10 @@ const START_SERVER = () => {
 
   app.use(errorHandlingMiddleware)
 
+  const port = process.env.PORT || 3000
+
   if (env.BUILD_MODE === 'production') {
-    app.listen(process.env.PORT, () => {
+    app.listen(port, () => {
       console.log(`Production: Server is running on port ${process.env.PORT}`)
     })
   } else {

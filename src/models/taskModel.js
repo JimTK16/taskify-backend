@@ -34,13 +34,7 @@ const TASK_COLLECTION_SCHEMA = Joi.object({
       then: Joi.required(),
       otherwise: Joi.allow(null)
     }),
-  isCompleted: Joi.boolean()
-    .default(false)
-    .when('completedAt', {
-      is: Joi.date().required(),
-      then: Joi.valid(true),
-      otherwise: Joi.valid(false)
-    })
+  isCompleted: Joi.boolean().default(false)
 })
 
 const INVALID_UPDATE_FIELDS = ['_id', 'createdAt', 'updatedAt', 'deletedAt']

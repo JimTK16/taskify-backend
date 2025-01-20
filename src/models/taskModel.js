@@ -15,14 +15,32 @@ const TASK_COLLECTION_SCHEMA = Joi.object({
       })
     )
     .default([]),
+  priority: Joi.string().valid('low', 'medium', 'high').default('low'),
   createdAt: Joi.date().timestamp('javascript').default(Date.now),
-  updatedAt: Joi.date().timestamp('javascript').default(null),
+  updatedAt: Joi.date()
+    .timestamp('javascript')
+    .min(Joi.ref('createdAt'))
+    .default(Joi.ref('createdAt')),
   deletedAt: Joi.date()
     .timestamp('javascript')
-    .less(Joi.ref('createdAt'))
+    .min(Joi.ref('createdAt'))
     .default(null),
-  completedAt: Joi.date().timestamp('javascript').default(null),
-  isCompleted: Joi.boolean().default(false)
+  completedAt: Joi.date()
+    .timestamp('javascript')
+    .min(Joi.ref('createdAt'))
+    .default(null)
+    .when('isCompleted', {
+      is: true,
+      then: Joi.required(),
+      otherwise: Joi.allow(null)
+    }),
+  isCompleted: Joi.boolean()
+    .default(false)
+    .when('completedAt', {
+      is: Joi.date().required(),
+      then: Joi.valid(true),
+      otherwise: Joi.valid(false)
+    })
 })
 
 const INVALID_UPDATE_FIELDS = ['_id', 'createdAt', 'updatedAt', 'deletedAt']

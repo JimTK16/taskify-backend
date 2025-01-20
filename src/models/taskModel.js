@@ -6,8 +6,15 @@ import { ObjectId } from 'mongodb'
 const TASK_COLLECTION_NAME = 'tasks'
 const TASK_COLLECTION_SCHEMA = Joi.object({
   title: Joi.string().required().min(3).trim().strict(),
-
-  description: Joi.string().allow('').optional(),
+  description: Joi.string().trim().default(''),
+  labels: Joi.array()
+    .items(
+      Joi.object({
+        name: Joi.string().required().min(3).trim().strict(),
+        color: Joi.string().required().min(3).trim().strict()
+      })
+    )
+    .default([]),
   createdAt: Joi.date().timestamp('javascript').default(Date.now),
   updatedAt: Joi.date().timestamp('javascript').default(null),
   deletedAt: Joi.date()

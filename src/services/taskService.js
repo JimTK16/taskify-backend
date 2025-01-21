@@ -16,16 +16,23 @@ const update = async (id, reqBody) => {
   try {
     const updateData = { ...reqBody, updatedAt: Date.now() }
 
-    const updatedTask = await taskModel.update(id, updateData)
-
-    return updatedTask
+    const result = await taskModel.update(id, updateData)
+    if (!result) {
+      return { error: 'task not found' }
+    }
+    return result
   } catch (error) {
     throw new Error(error)
   }
 }
 const deleteTask = async (id) => {
   try {
-    await taskModel.deleteOneById(id)
+    const deleteData = { deletedAt: Date.now() }
+
+    const result = await taskModel.update(id, deleteData)
+    if (!result) {
+      return { error: 'task not found' }
+    }
 
     return { deleteResult: 'task deleted' }
   } catch (error) {

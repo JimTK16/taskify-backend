@@ -7,7 +7,7 @@ const createNew = async (req, res, next) => {
   const correctCondition = Joi.object({
     title: Joi.string().required().min(3).trim().strict(),
 
-    description: Joi.string().allow('').optional()
+    description: Joi.string().trim().default('')
   })
 
   try {
@@ -30,7 +30,7 @@ const createNew = async (req, res, next) => {
 const update = async (req, res, next) => {
   const bodySchema = Joi.object({
     title: Joi.string().required().min(3).trim().strict(),
-    description: Joi.string().allow('').optional()
+    description: Joi.string().trim().default('')
   })
 
   const paramsSchema = Joi.object({

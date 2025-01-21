@@ -1,5 +1,6 @@
 import { StatusCodes } from 'http-status-codes'
 import { taskService } from '~/services/taskService'
+import ApiError from '~/utils/ApiError'
 
 const createNew = async (req, res, next) => {
   try {
@@ -14,9 +15,14 @@ const createNew = async (req, res, next) => {
 const update = async (req, res, next) => {
   try {
     const taskId = req.params.id
-    const updatedTask = await taskService.update(taskId, req.body)
+    const updateData = req.body
+    const result = await taskService.update(taskId, updateData)
 
-    res.status(StatusCodes.OK).json(updatedTask)
+    if (result.error) {
+      return next(new ApiError(StatusCodes.NOT_FOUND, result.error))
+    }
+
+    res.status(StatusCodes.OK).json(result)
   } catch (error) {
     next(error)
   }
@@ -26,6 +32,9 @@ const deleteTask = async (req, res, next) => {
     const taskId = req.params.id
     const result = await taskService.deleteTask(taskId)
 
+    if (result.error) {
+      return next(new ApiError(StatusCodes.NOT_FOUND, result.error))
+    }
     res.status(StatusCodes.OK).json(result)
   } catch (error) {
     next(error)

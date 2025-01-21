@@ -23,13 +23,9 @@ export const CONNECT_DB = async () => {
     await taskifyDatabaseInstance.command({ ping: 1 })
 
     // Optional: Check if any collections exist
-    const collections = await taskifyDatabaseInstance
-      .listCollections()
-      .toArray()
-
-    // console.log(`Connected to Database: ${env.DATABASE_NAME}`)
-    // console.log(`Found ${collections.length} collections`)
-    // console.log(collections)
+    // const collections = await taskifyDatabaseInstance
+    //   .listCollections()
+    //   .toArray()
   } catch (error) {
     console.error(`Error connecting to database: ${error.message}`)
     // Clean up on error

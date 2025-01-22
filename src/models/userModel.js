@@ -41,9 +41,20 @@ const findByEmail = async (email) => {
   return result
 }
 
+const findById = async (id) => {
+  const result = await GET_DB()
+    .collection(USER_COLLECTION_NAME)
+    .findOne({
+      _id: ObjectId(id)
+    })
+
+  return result
+}
+
 export const userModel = {
   USER_COLLECTION_NAME,
   USER_COLLECTION_SCHEMA,
   register,
-  findByEmail
+  findByEmail,
+  findById
 }

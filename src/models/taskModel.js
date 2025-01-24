@@ -5,6 +5,10 @@ import { ObjectId } from 'mongodb'
 
 const TASK_COLLECTION_NAME = 'tasks'
 const TASK_COLLECTION_SCHEMA = Joi.object({
+  userId: Joi.string()
+    .required()
+    .pattern(OBJECT_ID_RULE)
+    .message(OBJECT_ID_RULE_MESSAGE),
   title: Joi.string().required().min(3).trim().strict(),
   description: Joi.string().trim().default(''),
   labels: Joi.array()
@@ -76,6 +80,17 @@ const findOneById = async (id) => {
   }
 }
 
+const findTasksByUserId = async (userId) => {
+  try {
+    const tasks = await GET_DB()
+      .collection(TASK_COLLECTION_NAME)
+      .find({ userId: userId, deletedAt: null })
+      .toArray()
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 const update = async (id, updateData) => {
   try {
     Object.keys(updateData).forEach((fieldName) => {
@@ -134,5 +149,6 @@ export const taskModel = {
   createNew,
   // deleteOneById,
   findOneById,
+  findTasksByUserId,
   update
 }

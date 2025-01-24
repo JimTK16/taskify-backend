@@ -4,9 +4,10 @@ import ApiError from '~/utils/ApiError'
 
 const createNew = async (req, res, next) => {
   try {
-    const createdTask = await taskService.createNew(req.body)
+    const userId = req.user._id.toString()
+    const result = await taskService.createNew(req.body, userId)
 
-    res.status(StatusCodes.CREATED).json(createdTask)
+    res.status(StatusCodes.CREATED).json(result)
   } catch (error) {
     next(error)
   }
@@ -41,8 +42,29 @@ const deleteTask = async (req, res, next) => {
   }
 }
 
+const getTasks = async (req, res, next) => {
+  try {
+    const userId = req.user._id.toString()
+    const result = await taskService.getTasks(userId)
+    res.status(StatusCodes.OK).json(result)
+  } catch (error) {
+    next(error)
+  }
+}
+
+const getOne = async (req, res, next) => {
+  try {
+    const userId = req.user._id.toString()
+    const taskId = req.params.id
+    const result = await taskService.getOne(taskId, userId)
+    res.status(StatusCodes.OK).json(result)
+  } catch (error) {}
+}
+
 export const taskController = {
   createNew,
   deleteTask,
-  update
+  update,
+  getTasks,
+  getOne
 }

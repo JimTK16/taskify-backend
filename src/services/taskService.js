@@ -1,8 +1,10 @@
+import { StatusCodes } from 'http-status-codes'
 import { taskModel } from '~/models/taskModel'
+import ApiError from '~/utils/ApiError'
 
-const createNew = async (reqBody) => {
+const createNew = async (reqBody, userId) => {
   try {
-    const newTask = { ...reqBody }
+    const newTask = { ...reqBody, userId }
 
     const createdTask = await taskModel.createNew(newTask)
 
@@ -40,8 +42,29 @@ const deleteTask = async (id) => {
   }
 }
 
+const getTasks = async (userId) => {
+  try {
+    const tasks = await taskModel.findTasksByUserId(userId)
+    return tasks
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+const getOne = async (taskId, userId) => {
+  try {
+    const task = await taskModel.findOneById(taskId, userId)
+    if (!task) {
+      throw new ApiError(StatusCodes.NOT_FOUND, 'Task not found')
+    }
+    return task
+  } catch (error) {
+    throw new Error(error)
+  }
+}
 export const taskService = {
   createNew,
   deleteTask,
-  update
+  update,
+  getTasks,
+  getOne
 }

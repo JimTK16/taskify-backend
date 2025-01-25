@@ -46,7 +46,7 @@ const findById = async (id) => {
   const result = await GET_DB()
     .collection(USER_COLLECTION_NAME)
     .findOne({
-      _id: ObjectId(id)
+      _id: ObjectId.createFromHexString(id)
     })
 
   return result

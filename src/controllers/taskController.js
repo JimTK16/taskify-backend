@@ -4,7 +4,8 @@ import ApiError from '~/utils/ApiError'
 
 const createNew = async (req, res, next) => {
   try {
-    const userId = req.user._id.toString()
+    console.log(req)
+    const userId = req.user.userId.toString()
     const result = await taskService.createNew(req.body, userId)
 
     res.status(StatusCodes.CREATED).json(result)

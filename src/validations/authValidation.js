@@ -10,28 +10,22 @@ const register = async (req, res, next) => {
     })
     next()
   } catch (error) {
-    const errorMessage = new Error(error).message
-    const customError = new ApiError(
-      StatusCodes.UNPROCESSABLE_ENTITY,
-      errorMessage
-    )
-    next(customError)
+    next(new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, error.message))
   }
 }
 
 const login = async (req, res, next) => {
+  const schema = Joi.object({
+    email: Joi.string().email().required().trim().strict(),
+    password: Joi.string().required().min(8).trim().strict()
+  })
   try {
-    await userModel.USER_LOGIN_SCHEMA.validateAsync(req.body, {
+    await schema.validateAsync(req.body, {
       abortEarly: false
     })
     next()
   } catch (error) {
-    const errorMessage = new Error(error).message
-    const customError = new ApiError(
-      StatusCodes.UNPROCESSABLE_ENTITY,
-      errorMessage
-    )
-    next(customError)
+    next(new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, error.message))
   }
 }
 

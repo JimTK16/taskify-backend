@@ -8,7 +8,9 @@ const USER_COLLECTION_SCHEMA = Joi.object({
   username: Joi.string().required().min(3).trim().strict(),
   email: Joi.string().email().required().trim().strict(),
   password: Joi.string().required().min(8).trim().strict(),
-  createdAt: Joi.date().timestamp('javascript').default(Date.now)
+  createdAt: Joi.date().timestamp('javascript').default(Date.now),
+  isGuest: Joi.boolean().default(false),
+  guestExpiryDate: Joi.date().timestamp('javascript').allow(null).default(null)
 })
 
 const validateBeforeCreate = async (data) => {
@@ -52,10 +54,32 @@ const findById = async (id) => {
   return result
 }
 
+const cleanupGuestAccounts = async () => {
+  try {
+    const result = await GET_DB()
+      .collection(USER_COLLECTION_NAME)
+      .deleteMany({
+        isGuest: true,
+        guestExpiryDate: { $lt: new Date() }
+      })
+
+    //also delete all tasks created by guest users
+    if (result.deletedCount > 0) {
+      await GET_DB()
+        .collection('tasks')
+        .deleteMany({ userId: { $in: result.deletedIds } })
+    }
+
+    return result
+  } catch (error) {
+    throw new Error(error)
+  }
+}
 export const userModel = {
   USER_COLLECTION_NAME,
   USER_COLLECTION_SCHEMA,
   register,
   findByEmail,
-  findById
+  findById,
+  cleanupGuestAccounts
 }

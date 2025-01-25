@@ -30,8 +30,18 @@ const logout = async (req, res, next) => {
   }
 }
 
+const loginAsGuest = async (req, res, next) => {
+  try {
+    const result = await authService.loginAsGuest()
+    res.status(StatusCodes.OK).json(guestUser)
+  } catch (error) {
+    next(error)
+  }
+}
+
 export const authController = {
   register,
   login,
-  logout
+  logout,
+  loginAsGuest
 }

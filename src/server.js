@@ -1,11 +1,13 @@
 import express from 'express'
 import cors from 'cors'
+import cron from 'node-cron'
 import { corsOptions } from './config/cors'
 import exitHook from 'async-exit-hook'
 import { CONNECT_DB, CLOSE_DB } from './config/mongodb'
 import { env } from './config/environment'
 import { APIs_V1 } from './routes/index'
 import { errorHandlingMiddleware } from './middlewares/errorHandlingMiddleware'
+import { userModel } from './models/userModel'
 
 const START_SERVER = () => {
   const app = express()
@@ -40,6 +42,9 @@ const START_SERVER = () => {
 CONNECT_DB()
   .then(() => {
     console.log('Connected to MongoDB')
+    cron.schedule('0 0 * * *', async () => {
+      await userModel.cleanupGuestAccounts()
+    })
   })
   .then(() => {
     START_SERVER()

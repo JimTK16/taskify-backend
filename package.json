@@ -15,7 +15,8 @@
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",
-    "mongodb": "^6.12.0"
+    "mongodb": "^6.12.0",
+    "node-cron": "^3.0.3"
   },
   "scripts": {
     "production": "npm run build && cross-env BUILD_MODE=production node ./build/src/server.js",

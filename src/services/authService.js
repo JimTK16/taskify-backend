@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt'
 import ApiError from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
 import { generateToken } from '~/utils/jwtHelper'
+import { taskModel } from '~/models/taskModel'
 
 const register = async (reqBody) => {
   try {
@@ -81,13 +82,15 @@ const loginAsGuest = async () => {
   await createGuestSampleTasks(result.insertedId.toString())
   const token = generateToken(result.insertedId.toString())
 
-  return {
+  const returnResult = {
     user: {
       email: guestUser.email,
       username: guestUser.username
     },
     token
   }
+
+  return returnResult
 }
 
 export const authService = {

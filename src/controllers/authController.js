@@ -33,7 +33,7 @@ const logout = async (req, res, next) => {
 const loginAsGuest = async (req, res, next) => {
   try {
     const result = await authService.loginAsGuest()
-    res.status(StatusCodes.OK).json(guestUser)
+    res.status(StatusCodes.OK).json(result)
   } catch (error) {
     next(error)
   }

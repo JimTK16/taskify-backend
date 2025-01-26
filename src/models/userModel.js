@@ -30,6 +30,7 @@ const register = async (data) => {
       .collection(USER_COLLECTION_NAME)
       .insertOne(newUser)
 
+    console.log(createdUser)
     return createdUser
   } catch (error) {
     throw new Error(error)

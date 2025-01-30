@@ -1,57 +1,57 @@
-import express from "express";
-import cors from "cors";
-import cron from "node-cron";
-import { corsOptions } from "./config/cors";
-import exitHook from "async-exit-hook";
-import { CONNECT_DB, CLOSE_DB } from "./config/mongodb";
-import { env } from "./config/environment";
-import { APIs_V1 } from "./routes/index";
-import { errorHandlingMiddleware } from "./middlewares/errorHandlingMiddleware";
-import { userModel } from "./models/userModel";
+import express from 'express'
+import cors from 'cors'
+import cron from 'node-cron'
+import { corsOptions } from './config/cors'
+import exitHook from 'async-exit-hook'
+import { CONNECT_DB, CLOSE_DB } from './config/mongodb'
+import { env } from './config/environment'
+import { APIs_V1 } from './routes/index'
+import { errorHandlingMiddleware } from './middlewares/errorHandlingMiddleware'
+import { userModel } from './models/userModel'
 
 const START_SERVER = () => {
-  const app = express();
+  const app = express()
 
-  app.use(cors(corsOptions));
+  app.use(cors(corsOptions))
 
-  app.use(express.json());
+  app.use(express.json())
 
-  app.use("/v1", APIs_V1);
+  app.use('/v1', APIs_V1)
 
-  app.use(errorHandlingMiddleware);
+  app.use(errorHandlingMiddleware)
 
-  const port = process.env.PORT || 3000;
+  const port = process.env.PORT || 3000
 
-  if (env.BUILD_MODE === "production") {
+  if (env.BUILD_MODE === 'production') {
     app.listen(port, () => {
-      console.log(`Production: Server is running on port ${process.env.PORT}`);
-    });
+      console.log(`Production: Server is running on port ${process.env.PORT}`)
+    })
   } else {
     app.listen(env.LOCAL_DEV_APP_PORT, env.LOCAL_DEV_APP_HOST, () => {
       console.log(
         `Development: Server is running at http://${env.LOCAL_DEV_APP_HOST}:${env.LOCAL_DEV_APP_PORT}/`
-      );
-    });
+      )
+    })
   }
 
   exitHook(() => {
-    CLOSE_DB();
-  });
-};
+    CLOSE_DB()
+  })
+}
 
 CONNECT_DB()
   .then(() => {
-    console.log("Connected to MongoDB");
+    console.log('Connected to MongoDB')
 
     // Cleanup guest accounts every day at midnight
-    cron.schedule("0 0 * * *", async () => {
-      await userModel.cleanupGuestAccounts();
-    });
+    cron.schedule('0 0 * * *', async () => {
+      await userModel.cleanupGuestAccounts()
+    })
   })
   .then(() => {
-    START_SERVER();
+    START_SERVER()
   })
   .catch((err) => {
-    console.error(err);
-    process.exit(0);
-  });
+    console.error(err)
+    process.exit(0)
+  })

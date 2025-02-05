@@ -71,7 +71,7 @@ const createGuestSampleTasks = async (userId) => {
 
 const loginAsGuest = async () => {
   const guestUser = {
-    username: `Guest_${Date.now()}`,
+    // username: `Guest_${Date.now()}`,
     email: `guest_${Date.now()}@guest.com`,
     password: `guest${Date.now()}`,
     isGuest: true,

@@ -5,9 +5,9 @@ import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from './validators'
 
 const USER_COLLECTION_NAME = 'users'
 const USER_COLLECTION_SCHEMA = Joi.object({
-  username: Joi.string().required().min(3).trim().strict(),
+  // username: Joi.string().required().min(3).trim().strict(),
   email: Joi.string().email().required().trim().strict(),
-  password: Joi.string().required().min(8).trim().strict(),
+  password: Joi.string().required().min(6).trim().strict(),
   createdAt: Joi.date().timestamp('javascript').default(Date.now),
   isGuest: Joi.boolean().default(false),
   guestExpiryDate: Joi.date().timestamp('javascript').allow(null).default(null)

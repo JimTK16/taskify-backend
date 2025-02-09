@@ -86,6 +86,8 @@ const findTasksByUserId = async (userId) => {
       .collection(TASK_COLLECTION_NAME)
       .find({ userId: userId, deletedAt: null })
       .toArray()
+
+    return tasks
   } catch (error) {
     throw new Error(error)
   }

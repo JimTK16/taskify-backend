@@ -45,7 +45,9 @@ const deleteTask = async (req, res, next) => {
 
 const getTasks = async (req, res, next) => {
   try {
-    const userId = req.user._id.toString()
+    console.log(req.user)
+    const userId = req.user.userId
+    console.log(userId)
     const result = await taskService.getTasks(userId)
     res.status(StatusCodes.OK).json(result)
   } catch (error) {
@@ -55,7 +57,7 @@ const getTasks = async (req, res, next) => {
 
 const getOne = async (req, res, next) => {
   try {
-    const userId = req.user._id.toString()
+    const userId = req.user.userId
     const taskId = req.params.id
     const result = await taskService.getOne(taskId, userId)
     res.status(StatusCodes.OK).json(result)

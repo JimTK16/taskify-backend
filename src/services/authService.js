@@ -35,8 +35,10 @@ const login = async (email, password) => {
     throw new ApiError(StatusCodes.UNAUTHORIZED, 'Invalid credentials')
   }
 
-  const token = generateToken(user._id.toString())
-  return { user: { email: user.email, username: user.username }, token }
+  const userId = user._id.toString()
+
+  const token = generateToken(userId)
+  return { user: { email: user.email, userId }, token }
 }
 
 const createGuestSampleTasks = async (userId) => {
@@ -79,13 +81,14 @@ const loginAsGuest = async () => {
   }
 
   const result = await userModel.register(guestUser)
-  await createGuestSampleTasks(result.insertedId.toString())
-  const token = generateToken(result.insertedId.toString())
+  const userId = result.insertedId.toString()
+  await createGuestSampleTasks(userId)
+  const token = generateToken(userId)
 
   const returnResult = {
     user: {
       email: guestUser.email,
-      username: guestUser.username
+      userId
     },
     token
   }

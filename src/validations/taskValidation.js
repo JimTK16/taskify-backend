@@ -2,7 +2,7 @@ import Joi from 'joi'
 import { StatusCodes } from 'http-status-codes'
 import ApiError from '~/utils/ApiError'
 import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/models/validators'
-
+import { taskModel } from '~/models/taskModel'
 const checkId = async (req, res, next) => {
   const schema = Joi.object({
     id: Joi.string()
@@ -20,9 +20,9 @@ const checkId = async (req, res, next) => {
 }
 
 const createNew = async (req, res, next) => {
-  const schema = Joi.object({
+  const CLIENT_TASK_SCHEMA = Joi.object({
     title: Joi.string().required().min(3).trim().strict(),
-    description: Joi.string().trim().default(''),
+    description: Joi.string().allow(null, '').trim().default(''),
     labels: Joi.array()
       .items(
         Joi.object({
@@ -35,7 +35,7 @@ const createNew = async (req, res, next) => {
   })
 
   try {
-    await schema.validateAsync(req.body, {
+    await CLIENT_TASK_SCHEMA.validateAsync(req.body, {
       abortEarly: false
     })
 

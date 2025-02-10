@@ -1,6 +1,5 @@
 import { StatusCodes } from 'http-status-codes'
 import { authService } from '~/services/authService'
-import ApiError from '~/utils/ApiError'
 
 const register = async (req, res, next) => {
   try {

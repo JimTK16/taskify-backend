@@ -6,7 +6,10 @@ const createNew = async (reqBody, userId) => {
   try {
     const newTask = { ...reqBody, userId }
 
-    const createdTask = await taskModel.createNew(newTask)
+    const response = await taskModel.createNew(newTask)
+    const createdTask = await taskModel.findOneById(
+      response.insertedId.toString()
+    )
 
     return createdTask
   } catch (error) {

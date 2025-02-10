@@ -10,7 +10,7 @@ const TASK_COLLECTION_SCHEMA = Joi.object({
     .pattern(OBJECT_ID_RULE)
     .message(OBJECT_ID_RULE_MESSAGE),
   title: Joi.string().required().min(3).trim().strict(),
-  description: Joi.string().trim().default(''),
+  description: Joi.string().allow(null, '').trim().default(''),
   labels: Joi.array()
     .items(
       Joi.object({

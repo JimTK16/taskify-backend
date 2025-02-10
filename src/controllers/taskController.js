@@ -4,7 +4,6 @@ import ApiError from '~/utils/ApiError'
 
 const createNew = async (req, res, next) => {
   try {
-    console.log(req)
     const userId = req.user.userId.toString()
     const result = await taskService.createNew(req.body, userId)
 
@@ -45,9 +44,7 @@ const deleteTask = async (req, res, next) => {
 
 const getTasks = async (req, res, next) => {
   try {
-    console.log(req.user)
     const userId = req.user.userId
-    console.log(userId)
     const result = await taskService.getTasks(userId)
     res.status(StatusCodes.OK).json(result)
   } catch (error) {

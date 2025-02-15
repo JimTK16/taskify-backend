@@ -1,59 +1,118 @@
 import { StatusCodes } from 'http-status-codes'
 import { taskModel } from '~/models/taskModel'
 import ApiError from '~/utils/ApiError'
+import { isValidObjectId } from '~/utils/validators'
 
 const createNew = async (reqBody, userId) => {
-  try {
-    const newTask = { ...reqBody, userId }
+  if (!isValidObjectId(userId)) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid user ID')
+  }
 
-    const response = await taskModel.createNew(newTask)
-    const createdTask = await taskModel.findOneById(
-      response.insertedId.toString()
+  //Sanitize input
+  const allowedFields = [
+    'title',
+    'description',
+    'labels',
+    'dueDate',
+    'priority'
+  ]
+  const sanitizedInput = Object.keys(reqBody)
+    .filter((key) => allowedFields.includes(key))
+    .reduce((obj, key) => {
+      obj[key] = reqBody[key]
+      return obj
+    }, {})
+  try {
+    const newTask = { ...sanitizedInput, userId }
+
+    const createdTask = await taskModel.createNew(newTask)
+    const fetchedTask = await taskModel.findOneById(
+      createdTask.insertedId.toString(),
+      userId
     )
 
-    return createdTask
+    if (!fetchedTask) {
+      throw new ApiError(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        'Failed to create task'
+      )
+    }
+
+    return fetchedTask
   } catch (error) {
-    throw new Error(error)
+    throw new ApiError(
+      error.status || StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message
+    )
   }
 }
 
-const update = async (id, reqBody) => {
-  try {
-    const updateData = { ...reqBody, updatedAt: Date.now() }
+const update = async (taskId, userId, updateData) => {
+  // Validate taskId
+  if (!isValidObjectId(taskId)) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid task ID')
+  }
 
-    const result = await taskModel.update(id, updateData)
-    if (!result) {
-      return { error: 'task not found' }
-    }
-    return result
+  // Check task existence
+  const exsistingTask = await taskModel.findOneById(taskId, userId)
+  if (!exsistingTask) {
+    throw new ApiError(StatusCodes.NOT_FOUND, 'Task not found')
+  }
+
+  // Prepare update data
+  const sanitizedUpdate = { ...updateData, updatedAt: Date.now() }
+  try {
+    return await taskModel.update(taskId, sanitizedUpdate)
   } catch (error) {
-    throw new Error(error)
+    throw new ApiError(
+      error.status || StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message
+    )
   }
 }
-const deleteTask = async (id) => {
+const deleteTask = async (taskId, userId) => {
+  // Validate taskId
+  if (!isValidObjectId(taskId)) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid task ID')
+  }
+
+  // Check task existence
+  const exsistingTask = await taskModel.findOneById(taskId, userId)
+  if (!exsistingTask) {
+    throw new ApiError(StatusCodes.NOT_FOUND, 'Task not found')
+  }
+
   try {
-    const deleteData = { deletedAt: Date.now() }
-
-    const result = await taskModel.update(id, deleteData)
-    if (!result) {
-      return { error: 'task not found' }
-    }
-
-    return { deleteResult: 'task deleted' }
+    return await taskModel.update(taskId, {
+      deletedAt: Date.now(),
+      updatedAt: Date.now()
+    })
   } catch (error) {
-    throw new Error(error)
+    throw new ApiError(
+      error.status || StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message
+    )
   }
 }
 
 const getTasks = async (userId) => {
+  if (!isValidObjectId(userId)) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid user ID')
+  }
+
   try {
-    const tasks = await taskModel.findTasksByUserId(userId)
-    return tasks
+    return await taskModel.findTasksByUserId(userId)
   } catch (error) {
-    throw new Error(error)
+    throw new ApiError(
+      error.status || StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message
+    )
   }
 }
-const getOne = async (taskId, userId) => {
+const getTask = async (taskId, userId) => {
+  if (!isValidObjectId(taskId)) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid task ID')
+  }
   try {
     const task = await taskModel.findOneById(taskId, userId)
     if (!task) {
@@ -61,7 +120,10 @@ const getOne = async (taskId, userId) => {
     }
     return task
   } catch (error) {
-    throw new Error(error)
+    throw new ApiError(
+      error.status || StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message
+    )
   }
 }
 export const taskService = {
@@ -69,5 +131,5 @@ export const taskService = {
   deleteTask,
   update,
   getTasks,
-  getOne
+  getTask
 }

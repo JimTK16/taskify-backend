@@ -1,7 +1,7 @@
 import Joi from 'joi'
 import { StatusCodes } from 'http-status-codes'
 import ApiError from '~/utils/ApiError'
-import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/models/validators'
+import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
 import { taskModel } from '~/models/taskModel'
 const checkId = async (req, res, next) => {
   const schema = Joi.object({
@@ -9,19 +9,28 @@ const checkId = async (req, res, next) => {
       .required()
       .pattern(OBJECT_ID_RULE)
       .message(OBJECT_ID_RULE_MESSAGE)
-  })
+  }).unknown(false)
 
   try {
     await schema.validateAsync({ id: req.params.id }, { abortEarly: false })
+
+    const task = await taskModel.findOneById(req.params.id, req.user.userId)
+
+    if (!task) {
+      throw new ApiError(StatusCodes.NOT_FOUND, 'Task not found')
+    }
     next()
   } catch (error) {
-    next(new ApiError(StatusCodes.BAD_REQUEST, error.message))
+    const errorMessage = error.details
+      .map((detail) => detail.message)
+      .join(', ')
+    next(new ApiError(error.status || StatusCodes.BAD_REQUEST, errorMessage))
   }
 }
 
 const createNew = async (req, res, next) => {
   const CLIENT_TASK_SCHEMA = Joi.object({
-    title: Joi.string().required().min(3).trim().strict(),
+    title: Joi.string().required().min(3).trim(),
     description: Joi.string().allow(null, '').trim().default(''),
     labels: Joi.array()
       .items(
@@ -31,8 +40,11 @@ const createNew = async (req, res, next) => {
         })
       )
       .default([]),
-    priority: Joi.string().valid('low', 'medium', 'high').default('low')
-  })
+    dueDate: Joi.date().allow(null).default(null),
+    priority: Joi.string()
+      .valid('Priority 1', 'Priority 2', 'Priority 3')
+      .default('Priority 3')
+  }).unknown(false)
 
   try {
     await CLIENT_TASK_SCHEMA.validateAsync(req.body, {
@@ -41,13 +53,11 @@ const createNew = async (req, res, next) => {
 
     next()
   } catch (error) {
-    const errorMessage = new Error(error).message
-    const customError = new ApiError(
-      StatusCodes.UNPROCESSABLE_ENTITY,
-      errorMessage
-    )
+    const errorMessage = error.details
+      .map((detail) => detail.message)
+      .join(', ')
 
-    next(customError)
+    next(new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, errorMessage))
   }
 }
 
@@ -55,15 +65,29 @@ const update = async (req, res, next) => {
   const schema = Joi.object({
     title: Joi.string().required().min(3).trim().strict(),
     description: Joi.string().trim().default(''),
-    labels: Joi.array().items(
-      Joi.object({
-        name: Joi.string().required().min(3).trim().strict(),
-        color: Joi.string().required().min(3).trim().strict()
+    labels: Joi.array()
+      .items(
+        Joi.object({
+          name: Joi.string().required().min(3).trim().strict(),
+          color: Joi.string().required().min(3).trim().strict()
+        })
+      )
+      .default([]),
+    dueDate: Joi.date().allow(null),
+    priority: Joi.string()
+      .valid('Priority 1', 'Priority 2', 'Priority 3')
+      .default('Priority 3'),
+    isCompleted: Joi.boolean(),
+    completedAt: Joi.date()
+      .timestamp('javascript')
+      .min(Joi.ref('createdAt'))
+      .default(null)
+      .when('isCompleted', {
+        is: true,
+        then: Joi.required(),
+        otherwise: Joi.allow(null)
       })
-    ),
-    priority: Joi.string().valid('low', 'medium', 'high').default('low'),
-    isCompleted: Joi.boolean()
-  })
+  }).unknown(false)
 
   try {
     await schema.validateAsync(req.body, {
@@ -71,12 +95,11 @@ const update = async (req, res, next) => {
     })
     next()
   } catch (error) {
-    const errorMessage = new Error(error).message
-    const customError = new ApiError(
-      StatusCodes.UNPROCESSABLE_ENTITY,
-      errorMessage
-    )
-    next(customError)
+    const errorMessage = error.details
+      .map((detail) => detail.message)
+      .join(', ')
+
+    next(new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, errorMessage))
   }
 }
 

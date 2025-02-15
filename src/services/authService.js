@@ -47,21 +47,25 @@ const createGuestSampleTasks = async (userId) => {
       userId,
       title: 'Welcome to Taskify!',
       description: 'This is a sample task to help you get started',
-      priority: 'high',
+      priority: 'Priority 1',
+      dueDate: new Date().toISOString(),
+
       labels: [{ name: 'getting-started', color: '#4CAF50' }]
     },
     {
       userId,
       title: 'Try creating a new task',
       description: 'Click the + button to create your own task',
-      priority: 'medium',
+      priority: 'Priority 2',
+      dueDate: new Date().toISOString(),
       labels: [{ name: 'tutorial', color: '#2196F3' }]
     },
     {
       userId,
       title: 'Mark tasks as complete',
       description: 'Click the checkbox to mark tasks as done',
-      priority: 'low',
+      priority: 'Priority 3',
+      dueDate: new Date().toISOString(),
       labels: [{ name: 'basics', color: '#FFC107' }]
     }
   ]

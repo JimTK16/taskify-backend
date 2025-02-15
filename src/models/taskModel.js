@@ -1,7 +1,9 @@
 import Joi from 'joi'
-import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from './validators'
+import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '../utils/validators'
 import { GET_DB } from '~/config/mongodb'
 import { ObjectId } from 'mongodb'
+import ApiError from '~/utils/ApiError'
+import { StatusCodes } from 'http-status-codes'
 
 const TASK_COLLECTION_NAME = 'tasks'
 const TASK_COLLECTION_SCHEMA = Joi.object({
@@ -9,7 +11,7 @@ const TASK_COLLECTION_SCHEMA = Joi.object({
     .required()
     .pattern(OBJECT_ID_RULE)
     .message(OBJECT_ID_RULE_MESSAGE),
-  title: Joi.string().required().min(3).trim().strict(),
+  title: Joi.string().required().min(3).trim(),
   description: Joi.string().allow(null, '').trim().default(''),
   labels: Joi.array()
     .items(
@@ -19,7 +21,10 @@ const TASK_COLLECTION_SCHEMA = Joi.object({
       })
     )
     .default([]),
-  priority: Joi.string().valid('low', 'medium', 'high').default('low'),
+  dueDate: Joi.date().allow(null).default(null),
+  priority: Joi.string()
+    .valid('Priority 1', 'Priority 2', 'Priority 3')
+    .default('Priority 3'),
   createdAt: Joi.date().timestamp('javascript').default(Date.now),
   updatedAt: Joi.date()
     .timestamp('javascript')
@@ -46,6 +51,15 @@ const validateBeforeCreate = async (data) => {
   return await TASK_COLLECTION_SCHEMA.validateAsync(data, {
     abortEarly: false
   })
+
+  // the returned value is also included the default values if they are not provided
+}
+
+const validateObjectId = (id) => {
+  if (!ObjectId.isValid(id)) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid ID format')
+  }
+  return ObjectId.createFromHexString(id)
 }
 
 const createNew = async (data) => {
@@ -66,17 +80,20 @@ const createNew = async (data) => {
   }
 }
 
-const findOneById = async (id) => {
+const findOneById = async (id, userId) => {
   try {
-    const result = await GET_DB()
-      .collection(TASK_COLLECTION_NAME)
-      .findOne({
-        _id: ObjectId.createFromHexString(id)
-      })
+    const taskId = validateObjectId(id)
+    const result = await GET_DB().collection(TASK_COLLECTION_NAME).findOne({
+      _id: taskId,
+      userId: userId
+    })
 
     return result
   } catch (error) {
-    throw new Error(error)
+    throw new ApiError(
+      error.status || StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message
+    )
   }
 }
 
@@ -95,21 +112,24 @@ const findTasksByUserId = async (userId) => {
 
 const update = async (id, updateData) => {
   try {
-    Object.keys(updateData).forEach((fieldName) => {
-      if (INVALID_UPDATE_FIELDS.includes(fieldName)) {
-        delete updateData[fieldName]
-      }
-    })
+    const taskId = validateObjectId(id)
+
+    const filteredUpdate = Object.keys(updateData)
+      .filter((key) => !INVALID_UPDATE_FIELDS.includes(key))
+      .reduce((obj, key) => {
+        obj[key] = updateData[key]
+        return obj
+      }, {})
 
     const result = await GET_DB()
       .collection(TASK_COLLECTION_NAME)
       .findOneAndUpdate(
         {
-          _id: ObjectId.createFromHexString(id),
+          _id: taskId,
           deletedAt: null
         },
         {
-          $set: updateData
+          $set: filteredUpdate
         },
         {
           returnDocument: 'after'
@@ -118,38 +138,17 @@ const update = async (id, updateData) => {
 
     return result
   } catch (error) {
-    throw new Error(error)
+    throw new ApiError(
+      error.status || StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message
+    )
   }
 }
-
-// const deleteOneById = async (id) => {
-//   try {
-//     const result = await GET_DB()
-//       .collection(TASK_COLLECTION_NAME)
-//       .findOneAndUpdate(
-//         {
-//           _id: ObjectId.createFromHexString(id)
-//         },
-//         {
-//           $set: {
-//             deletedAt: Date.now()
-//           }
-//         },
-//         {
-//           returnDocument: 'after'
-//         }
-//       )
-//     return result
-//   } catch (error) {
-//     throw new Error(error)
-//   }
-// }
 
 export const taskModel = {
   TASK_COLLECTION_NAME,
   TASK_COLLECTION_SCHEMA,
   createNew,
-  // deleteOneById,
   findOneById,
   findTasksByUserId,
   update

@@ -1,6 +1,5 @@
 import { StatusCodes } from 'http-status-codes'
 import { taskService } from '~/services/taskService'
-import ApiError from '~/utils/ApiError'
 
 const createNew = async (req, res, next) => {
   try {
@@ -13,15 +12,12 @@ const createNew = async (req, res, next) => {
   }
 }
 
-const update = async (req, res, next) => {
+const updateTask = async (req, res, next) => {
   try {
+    const userId = req.user.userId.toString()
     const taskId = req.params.id
     const updateData = req.body
-    const result = await taskService.update(taskId, updateData)
-
-    if (result.error) {
-      return next(new ApiError(StatusCodes.NOT_FOUND, result.error))
-    }
+    const result = await taskService.update(taskId, userId, updateData)
 
     res.status(StatusCodes.OK).json(result)
   } catch (error) {
@@ -30,12 +26,10 @@ const update = async (req, res, next) => {
 }
 const deleteTask = async (req, res, next) => {
   try {
+    const userId = req.user.userId.toString()
     const taskId = req.params.id
-    const result = await taskService.deleteTask(taskId)
+    const result = await taskService.deleteTask(taskId, userId)
 
-    if (result.error) {
-      return next(new ApiError(StatusCodes.NOT_FOUND, result.error))
-    }
     res.status(StatusCodes.OK).json(result)
   } catch (error) {
     next(error)
@@ -52,19 +46,21 @@ const getTasks = async (req, res, next) => {
   }
 }
 
-const getOne = async (req, res, next) => {
+const getTask = async (req, res, next) => {
   try {
     const userId = req.user.userId
     const taskId = req.params.id
-    const result = await taskService.getOne(taskId, userId)
+    const result = await taskService.getTask(taskId, userId)
     res.status(StatusCodes.OK).json(result)
-  } catch (error) {}
+  } catch (error) {
+    next(error)
+  }
 }
 
 export const taskController = {
   createNew,
   deleteTask,
-  update,
+  updateTask,
   getTasks,
-  getOne
+  getTask
 }

@@ -11,7 +11,7 @@ const TASK_COLLECTION_SCHEMA = Joi.object({
     .required()
     .pattern(OBJECT_ID_RULE)
     .message(OBJECT_ID_RULE_MESSAGE),
-  title: Joi.string().required().min(3).trim(),
+  title: Joi.string().required().min(1).trim(),
   description: Joi.string().allow(null, '').trim().default(''),
   labels: Joi.array()
     .items(
@@ -33,10 +33,12 @@ const TASK_COLLECTION_SCHEMA = Joi.object({
   deletedAt: Joi.date()
     .timestamp('javascript')
     .min(Joi.ref('createdAt'))
+    .allow(null)
     .default(null),
   completedAt: Joi.date()
     .timestamp('javascript')
     .min(Joi.ref('createdAt'))
+    .allow(null)
     .default(null)
     .when('isCompleted', {
       is: true,
@@ -46,6 +48,11 @@ const TASK_COLLECTION_SCHEMA = Joi.object({
   isCompleted: Joi.boolean().default(false)
 })
 
+const TASK_DELETE_SCHEMA = Joi.object({
+  deletedAt: Joi.date().timestamp('javascript').allow(null),
+  updatedAt: Joi.date().timestamp('javascript').required()
+}).unknown(true)
+
 const INVALID_UPDATE_FIELDS = ['_id', 'createdAt', 'userId']
 const validateBeforeCreate = async (data) => {
   return await TASK_COLLECTION_SCHEMA.validateAsync(data, {
@@ -53,6 +60,15 @@ const validateBeforeCreate = async (data) => {
   })
 
   // the returned value is also included the default values if they are not provided
+}
+
+const validateBeforeUpdate = async (data, isDelete = false, isUndeleting) => {
+  const schema =
+    isDelete || isUndeleting ? TASK_DELETE_SCHEMA : TASK_COLLECTION_SCHEMA
+  return await schema.validateAsync(data, {
+    abortEarly: false,
+    stripUnknown: true
+  })
 }
 
 const validateObjectId = (id) => {
@@ -110,14 +126,20 @@ const findTasksByUserId = async (userId) => {
   }
 }
 
-const update = async (id, updateData) => {
+const update = async (id, updateData, isDelete = false, isUnDeleting) => {
   try {
     const taskId = validateObjectId(id)
 
-    const filteredUpdate = Object.keys(updateData)
+    const validData = await validateBeforeUpdate(
+      updateData,
+      isDelete,
+      isUnDeleting
+    )
+
+    const filteredUpdate = Object.keys(validData)
       .filter((key) => !INVALID_UPDATE_FIELDS.includes(key))
       .reduce((obj, key) => {
-        obj[key] = updateData[key]
+        obj[key] = validData[key]
         return obj
       }, {})
 
@@ -125,8 +147,7 @@ const update = async (id, updateData) => {
       .collection(TASK_COLLECTION_NAME)
       .findOneAndUpdate(
         {
-          _id: taskId,
-          deletedAt: null
+          _id: taskId
         },
         {
           $set: filteredUpdate

@@ -47,7 +47,7 @@ const createNew = async (reqBody, userId) => {
   }
 }
 
-const update = async (taskId, userId, updateData) => {
+const update = async (taskId, userId, updateData, isUnDeleting) => {
   // Validate taskId
   if (!isValidObjectId(taskId)) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid task ID')
@@ -60,9 +60,10 @@ const update = async (taskId, userId, updateData) => {
   }
 
   // Prepare update data
-  const sanitizedUpdate = { ...updateData, updatedAt: Date.now() }
+  const sanitizedUpdate = { ...updateData, userId, updatedAt: Date.now() }
+
   try {
-    return await taskModel.update(taskId, sanitizedUpdate)
+    return await taskModel.update(taskId, sanitizedUpdate, isUnDeleting)
   } catch (error) {
     throw new ApiError(
       error.status || StatusCodes.INTERNAL_SERVER_ERROR,
@@ -83,10 +84,14 @@ const deleteTask = async (taskId, userId) => {
   }
 
   try {
-    return await taskModel.update(taskId, {
-      deletedAt: Date.now(),
-      updatedAt: Date.now()
-    })
+    return await taskModel.update(
+      taskId,
+      {
+        deletedAt: Date.now(),
+        updatedAt: Date.now()
+      },
+      true
+    )
   } catch (error) {
     throw new ApiError(
       error.status || StatusCodes.INTERNAL_SERVER_ERROR,

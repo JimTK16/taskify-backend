@@ -16,8 +16,14 @@ const updateTask = async (req, res, next) => {
   try {
     const userId = req.user.userId.toString()
     const taskId = req.params.id
+    const isUnDeleting = req.query.undoing
     const updateData = req.body
-    const result = await taskService.update(taskId, userId, updateData)
+    const result = await taskService.update(
+      taskId,
+      userId,
+      updateData,
+      isUnDeleting
+    )
 
     res.status(StatusCodes.OK).json(result)
   } catch (error) {

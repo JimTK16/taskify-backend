@@ -30,7 +30,7 @@ const checkId = async (req, res, next) => {
 
 const createNew = async (req, res, next) => {
   const CLIENT_TASK_SCHEMA = Joi.object({
-    title: Joi.string().required().min(3).trim(),
+    title: Joi.string().required().min(1).trim(),
     description: Joi.string().allow(null, '').trim().default(''),
     labels: Joi.array()
       .items(
@@ -63,7 +63,7 @@ const createNew = async (req, res, next) => {
 
 const update = async (req, res, next) => {
   const schema = Joi.object({
-    title: Joi.string().required().min(3).trim().strict(),
+    title: Joi.string().required().min(1).trim(),
     description: Joi.string().trim().default(''),
     labels: Joi.array()
       .items(

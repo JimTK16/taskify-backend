@@ -54,8 +54,8 @@ const update = async (taskId, userId, updateData, isUnDeleting) => {
   }
 
   // Check task existence
-  const exsistingTask = await taskModel.findOneById(taskId, userId)
-  if (!exsistingTask) {
+  const existingTask = await taskModel.findOneById(taskId, userId)
+  if (!existingTask) {
     throw new ApiError(StatusCodes.NOT_FOUND, 'Task not found')
   }
 
@@ -78,8 +78,8 @@ const deleteTask = async (taskId, userId) => {
   }
 
   // Check task existence
-  const exsistingTask = await taskModel.findOneById(taskId, userId)
-  if (!exsistingTask) {
+  const existingTask = await taskModel.findOneById(taskId, userId)
+  if (!existingTask) {
     throw new ApiError(StatusCodes.NOT_FOUND, 'Task not found')
   }
 
@@ -92,6 +92,35 @@ const deleteTask = async (taskId, userId) => {
       },
       true
     )
+  } catch (error) {
+    throw new ApiError(
+      error.status || StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message
+    )
+  }
+}
+
+const toggleCompleted = async (taskId, userId, isCompleted) => {
+  // Validate taskId
+  if (!isValidObjectId(taskId)) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid task ID')
+  }
+
+  // Check task existence
+  const existingTask = await taskModel.findOneById(taskId, userId)
+  if (!existingTask) {
+    throw new ApiError(StatusCodes.NOT_FOUND, 'Task not found')
+  }
+
+  // Prepare update data
+  const sanitizedUpdate = {
+    isCompleted,
+    completedAt: isCompleted ? Date.now() : null,
+    updatedAt: Date.now()
+  }
+
+  try {
+    return await taskModel.toggleCompleted(taskId, sanitizedUpdate)
   } catch (error) {
     throw new ApiError(
       error.status || StatusCodes.INTERNAL_SERVER_ERROR,
@@ -136,5 +165,6 @@ export const taskService = {
   deleteTask,
   update,
   getTasks,
-  getTask
+  getTask,
+  toggleCompleted
 }

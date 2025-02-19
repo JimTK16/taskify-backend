@@ -42,6 +42,20 @@ const deleteTask = async (req, res, next) => {
   }
 }
 
+const toggleCompleted = async (req, res, next) => {
+  try {
+    const userId = req.user.userId.toString()
+    const taskId = req.params.id
+    const result = await taskService.toggleCompleted(
+      taskId,
+      userId,
+      req.body.isCompleted
+    )
+    res.status(StatusCodes.OK).json(result)
+  } catch (error) {
+    next(error)
+  }
+}
 const getTasks = async (req, res, next) => {
   try {
     const userId = req.user.userId
@@ -68,5 +82,6 @@ export const taskController = {
   deleteTask,
   updateTask,
   getTasks,
-  getTask
+  getTask,
+  toggleCompleted
 }

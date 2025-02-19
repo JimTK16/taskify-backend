@@ -14,4 +14,9 @@ Router.route('/:id')
   .get(taskValidation.checkId, taskController.getTask)
   .put(taskValidation.checkId, taskController.updateTask)
   .delete(taskValidation.checkId, taskController.deleteTask)
+Router.route('/:id/toggle-completed').patch(
+  taskValidation.checkId,
+  taskValidation.toggleCompleted,
+  taskController.toggleCompleted
+)
 export const taskRoute = Router

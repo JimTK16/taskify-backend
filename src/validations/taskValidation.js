@@ -40,7 +40,7 @@ const createNew = async (req, res, next) => {
         })
       )
       .default([]),
-    dueDate: Joi.date().allow(null).default(null),
+    dueDate: Joi.number().allow(null).default(null),
     priority: Joi.string()
       .valid('Priority 1', 'Priority 2', 'Priority 3')
       .default('Priority 3')
@@ -73,20 +73,11 @@ const update = async (req, res, next) => {
         })
       )
       .default([]),
-    dueDate: Joi.date().allow(null),
+    dueDate: Joi.number().allow(null),
     priority: Joi.string()
       .valid('Priority 1', 'Priority 2', 'Priority 3')
       .default('Priority 3'),
-    isCompleted: Joi.boolean(),
-    completedAt: Joi.date()
-      .timestamp('javascript')
-      .min(Joi.ref('createdAt'))
-      .default(null)
-      .when('isCompleted', {
-        is: true,
-        then: Joi.required(),
-        otherwise: Joi.allow(null)
-      })
+    isCompleted: Joi.boolean()
   }).unknown(false)
 
   try {
@@ -103,8 +94,26 @@ const update = async (req, res, next) => {
   }
 }
 
+const toggleCompleted = async (req, res, next) => {
+  const schema = Joi.object({
+    isCompleted: Joi.boolean().required()
+  }).unknown(false)
+  try {
+    await schema.validateAsync(req.body, {
+      abortEarly: false
+    })
+    next()
+  } catch (error) {
+    const errorMessage = error.details
+      .map((detail) => detail.message)
+      .join(', ')
+    next(new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, errorMessage))
+  }
+}
+
 export const taskValidation = {
   createNew,
   checkId,
-  update
+  update,
+  toggleCompleted
 }

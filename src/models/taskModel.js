@@ -21,22 +21,16 @@ const TASK_COLLECTION_SCHEMA = Joi.object({
       })
     )
     .default([]),
-  dueDate: Joi.date().allow(null).default(null),
+  dueDate: Joi.number().allow(null).default(null),
   priority: Joi.string()
     .valid('Priority 1', 'Priority 2', 'Priority 3')
     .default('Priority 3'),
-  createdAt: Joi.date().timestamp('javascript').default(Date.now),
-  updatedAt: Joi.date()
-    .timestamp('javascript')
+  createdAt: Joi.number().default(Date.now),
+  updatedAt: Joi.number()
     .min(Joi.ref('createdAt'))
     .default(Joi.ref('createdAt')),
-  deletedAt: Joi.date()
-    .timestamp('javascript')
-    .min(Joi.ref('createdAt'))
-    .allow(null)
-    .default(null),
-  completedAt: Joi.date()
-    .timestamp('javascript')
+  deletedAt: Joi.number().min(Joi.ref('createdAt')).allow(null).default(null),
+  completedAt: Joi.number()
     .min(Joi.ref('createdAt'))
     .allow(null)
     .default(null)
@@ -49,8 +43,12 @@ const TASK_COLLECTION_SCHEMA = Joi.object({
 })
 
 const TASK_DELETE_SCHEMA = Joi.object({
-  deletedAt: Joi.date().timestamp('javascript').allow(null),
-  updatedAt: Joi.date().timestamp('javascript').required()
+  deletedAt: Joi.number().allow(null),
+  updatedAt: Joi.number().required()
+}).unknown(true)
+
+const TASK_COMPLETION_SCHEMA = Joi.object({
+  isCompleted: Joi.boolean().required()
 }).unknown(true)
 
 const INVALID_UPDATE_FIELDS = ['_id', 'createdAt', 'userId']
@@ -165,12 +163,49 @@ const update = async (id, updateData, isDelete = false, isUnDeleting) => {
     )
   }
 }
+const toggleCompleted = async (id, updateData) => {
+  try {
+    const taskId = validateObjectId(id)
 
+    const validData = await TASK_COMPLETION_SCHEMA.validateAsync(updateData, {
+      abortEarly: false
+    })
+
+    const filteredUpdate = Object.keys(validData)
+      .filter((key) => !INVALID_UPDATE_FIELDS.includes(key))
+      .reduce((obj, key) => {
+        obj[key] = validData[key]
+        return obj
+      }, {})
+
+    const result = await GET_DB()
+      .collection(TASK_COLLECTION_NAME)
+      .findOneAndUpdate(
+        {
+          _id: taskId
+        },
+        {
+          $set: filteredUpdate
+        },
+        {
+          returnDocument: 'after'
+        }
+      )
+
+    return result
+  } catch (error) {
+    throw new ApiError(
+      error.status || StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message
+    )
+  }
+}
 export const taskModel = {
   TASK_COLLECTION_NAME,
   TASK_COLLECTION_SCHEMA,
   createNew,
   findOneById,
   findTasksByUserId,
-  update
+  update,
+  toggleCompleted
 }

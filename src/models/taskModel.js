@@ -69,7 +69,7 @@ const validateBeforeUpdate = async (data, isDelete = false, isUndeleting) => {
   })
 }
 
-const validateObjectId = (id) => {
+export const validateObjectId = (id) => {
   if (!ObjectId.isValid(id)) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid ID format')
   }
@@ -90,7 +90,10 @@ const createNew = async (data) => {
 
     return createdTask
   } catch (error) {
-    throw new Error(error)
+    throw new ApiError(
+      error.status || StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message
+    )
   }
 }
 
@@ -120,7 +123,10 @@ const findTasksByUserId = async (userId) => {
 
     return tasks
   } catch (error) {
-    throw new Error(error)
+    throw new ApiError(
+      error.status || StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message
+    )
   }
 }
 

@@ -44,7 +44,7 @@ CONNECT_DB()
     console.log('Connected to MongoDB')
 
     // Cleanup guest accounts every day at midnight
-    cron.schedule('0 0 * * *', async () => {
+    cron.schedule('0 * * * *', async () => {
       await userModel.cleanupGuestAccounts()
     })
   })

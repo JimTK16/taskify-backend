@@ -86,25 +86,21 @@ const createGuestSampleTasks = async (userId) => {
       title: 'Welcome to Taskify!',
       description: 'This is a sample task to help you get started',
       priority: 'Priority 1',
-      dueDate: Date.now(),
-
-      labels: [{ name: 'getting-started', color: '#4CAF50' }]
+      dueDate: Date.now()
     },
     {
       userId,
       title: 'Try creating a new task',
-      description: 'Click the + button to create your own task',
+      description: 'Click the + button in the sidebar to create your own task',
       priority: 'Priority 2',
-      dueDate: Date.now(),
-      labels: [{ name: 'tutorial', color: '#2196F3' }]
+      dueDate: Date.now()
     },
     {
       userId,
       title: 'Mark tasks as complete',
-      description: 'Click the checkbox to mark tasks as done',
+      description: 'Click the circle checkbox to mark tasks as done',
       priority: 'Priority 3',
-      dueDate: Date.now(),
-      labels: [{ name: 'basics', color: '#FFC107' }]
+      dueDate: Date.now()
     }
   ]
 
@@ -119,7 +115,7 @@ const loginAsGuest = async () => {
     email: `guest_${Date.now()}@guest.com`,
     password: `guest${Date.now()}`,
     isGuest: true,
-    guestExpiryDate: new Date(Date.now() + 24 * 60 * 60 * 1000)
+    guestExpiryDate: new Date(Date.now() + 60 * 60 * 1000)
   }
 
   const result = await userModel.register(guestUser)

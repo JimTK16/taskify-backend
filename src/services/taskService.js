@@ -26,19 +26,19 @@ const createNew = async (reqBody, userId) => {
     const newTask = { ...sanitizedInput, userId }
 
     const createdTask = await taskModel.createNew(newTask)
-    const fetchedTask = await taskModel.findOneById(
-      createdTask.insertedId.toString(),
-      userId
-    )
+    // const fetchedTask = await taskModel.findOneById(
+    //   createdTask._id.toString(),
+    //   userId
+    // )
 
-    if (!fetchedTask) {
-      throw new ApiError(
-        StatusCodes.INTERNAL_SERVER_ERROR,
-        'Failed to create task'
-      )
-    }
+    // if (!fetchedTask) {
+    //   throw new ApiError(
+    //     StatusCodes.INTERNAL_SERVER_ERROR,
+    //     'Failed to create task'
+    //   )
+    // }
 
-    return fetchedTask
+    return createdTask
   } catch (error) {
     throw new ApiError(
       error.status || StatusCodes.INTERNAL_SERVER_ERROR,

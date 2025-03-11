@@ -14,12 +14,7 @@ const TASK_COLLECTION_SCHEMA = Joi.object({
   title: Joi.string().required().min(1).trim(),
   description: Joi.string().allow(null, '').trim().default(''),
   labels: Joi.array()
-    .items(
-      Joi.object({
-        name: Joi.string().required().min(3).trim().strict(),
-        color: Joi.string().required().min(3).trim().strict()
-      })
-    )
+    .items(Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE))
     .default([]),
   dueDate: Joi.number().allow(null).default(null),
   priority: Joi.string()
@@ -76,6 +71,67 @@ export const validateObjectId = (id) => {
   return ObjectId.createFromHexString(id)
 }
 
+const enrichTasksWithLabelDetails = async (tasks) => {
+  // If tasks is a single task object, convert to array for consistent handling
+  const isArray = Array.isArray(tasks)
+  const tasksArray = isArray ? tasks : [tasks]
+
+  // Collect all unique label IDs
+  const labelIds = [
+    ...new Set(
+      tasksArray.flatMap((task) =>
+        (task.labels || []).filter(
+          (id) => id !== null && typeof id === 'string'
+        )
+      )
+    )
+  ].map((id) => ObjectId.createFromHexString(id))
+
+  // If there are no labels, return tasks as is
+  if (labelIds.length === 0) {
+    if (isArray) {
+      tasksArray.map((task) => {
+        task.labelDetails = []
+        return task
+      })
+    } else {
+      tasksArray[0].labelDetails = []
+      return tasksArray[0]
+    }
+  }
+
+  // Fetch all relevant labels
+  const labels = await GET_DB()
+    .collection('labels')
+    .find({ _id: { $in: labelIds }, deleted: false })
+    .toArray()
+
+  // Create a map for quick lookups
+  const labelsMap = labels.reduce((map, label) => {
+    map[label._id.toString()] = label
+    return map
+  }, {})
+
+  // Add label details to each task
+  const enrichedTasks = tasksArray.map((task) => {
+    const labelDetails = (task.labels || [])
+      .map((labelId) => {
+        if (labelId === null || typeof labelId.toString !== 'function')
+          return null
+        const id = labelId.toString()
+        return labelsMap[id] || null
+      })
+      .filter(Boolean) // Remove null values
+
+    return {
+      ...task,
+      labelDetails
+    }
+  })
+  // Return in the same format as the input
+  return isArray ? enrichedTasks : enrichedTasks[0]
+}
+
 const createNew = async (data) => {
   try {
     const validData = await validateBeforeCreate(data)
@@ -84,11 +140,15 @@ const createNew = async (data) => {
       ...validData
     }
 
-    const createdTask = await GET_DB()
+    const result = await GET_DB()
       .collection(TASK_COLLECTION_NAME)
       .insertOne(newTasktoAdd)
 
-    return createdTask
+    const newTask = await GET_DB()
+      .collection(TASK_COLLECTION_NAME)
+      .findOne({ _id: result.insertedId })
+    const enrichedTask = await enrichTasksWithLabelDetails(newTask)
+    return enrichedTask
   } catch (error) {
     throw new ApiError(
       error.status || StatusCodes.INTERNAL_SERVER_ERROR,
@@ -120,8 +180,8 @@ const findTasksByUserId = async (userId) => {
       .collection(TASK_COLLECTION_NAME)
       .find({ userId: userId, deletedAt: null })
       .toArray()
-
-    return tasks
+    const enrichedTasks = await enrichTasksWithLabelDetails(tasks)
+    return enrichedTasks
   } catch (error) {
     throw new ApiError(
       error.status || StatusCodes.INTERNAL_SERVER_ERROR,
@@ -161,6 +221,10 @@ const update = async (id, updateData, isDelete = false, isUnDeleting) => {
         }
       )
 
+    if (result) {
+      return await enrichTasksWithLabelDetails(result)
+    }
+
     return result
   } catch (error) {
     throw new ApiError(
@@ -197,7 +261,9 @@ const toggleCompleted = async (id, updateData) => {
           returnDocument: 'after'
         }
       )
-
+    if (result) {
+      return await enrichTasksWithLabelDetails(result)
+    }
     return result
   } catch (error) {
     throw new ApiError(

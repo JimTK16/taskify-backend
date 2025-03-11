@@ -34,10 +34,7 @@ const createNew = async (req, res, next) => {
     description: Joi.string().allow(null, '').trim().default(''),
     labels: Joi.array()
       .items(
-        Joi.object({
-          name: Joi.string().required().min(3).trim().strict(),
-          color: Joi.string().required().min(3).trim().strict()
-        })
+        Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
       )
       .default([]),
     dueDate: Joi.number().allow(null).default(null),

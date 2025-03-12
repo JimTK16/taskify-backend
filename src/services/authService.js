@@ -21,7 +21,7 @@ const register = async (reqBody) => {
     await createNewUserNotifications(result.insertedId.toString())
     return userWithoutPassword
   } catch (error) {
-    throw new Error(error)
+    throw error
   }
 }
 

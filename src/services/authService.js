@@ -2,7 +2,7 @@ import { userModel } from '~/models/userModel'
 import bcrypt from 'bcrypt'
 import ApiError from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
-import { generateToken } from '~/utils/jwtHelper'
+import { generateRefreshToken, generateToken } from '~/utils/jwtHelper'
 import { taskModel } from '~/models/taskModel'
 import { notificationModel } from '~/models/notificationModel'
 
@@ -38,8 +38,9 @@ const login = async (email, password) => {
 
   const userId = user._id.toString()
 
-  const token = generateToken(userId)
-  return { user: { email: user.email, userId }, token }
+  const accessToken = generateToken(userId)
+  const refreshToken = generateRefreshToken(userId)
+  return { user: { email: user.email, userId }, accessToken, refreshToken }
 }
 
 const createNewUserNotifications = async (userId) => {
@@ -122,14 +123,16 @@ const loginAsGuest = async () => {
   const userId = result.insertedId.toString()
   await createGuestSampleTasks(userId)
   await createNewUserNotifications(userId)
-  const token = generateToken(userId)
+  const accessToken = generateToken(userId)
+  const refreshToken = generateRefreshToken(userId)
 
   const returnResult = {
     user: {
       email: guestUser.email,
       userId
     },
-    token
+    accessToken,
+    refreshToken
   }
 
   return returnResult

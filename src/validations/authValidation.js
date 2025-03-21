@@ -17,7 +17,7 @@ const register = async (req, res, next) => {
 const login = async (req, res, next) => {
   const schema = Joi.object({
     email: Joi.string().email().required().trim().strict(),
-    password: Joi.string().required().min(8).trim().strict()
+    password: Joi.string().required().min(6).trim().strict()
   })
   try {
     await schema.validateAsync(req.body, {

@@ -8,11 +8,14 @@ import { env } from './config/environment'
 import { APIs_V1 } from './routes/index'
 import { errorHandlingMiddleware } from './middlewares/errorHandlingMiddleware'
 import { userModel } from './models/userModel'
+import cookieParser from 'cookie-parser'
 
 const START_SERVER = () => {
   const app = express()
 
   app.use(cors(corsOptions))
+
+  app.use(cookieParser())
 
   app.use(express.json())
 

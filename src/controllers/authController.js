@@ -76,7 +76,6 @@ const refreshToken = async (req, res, next) => {
     }
     const decoded = verifyToken(refreshToken, true)
     const user = await userModel.findById(decoded.userId)
-    console.log(user)
     if (!user) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, 'User not found')
     }

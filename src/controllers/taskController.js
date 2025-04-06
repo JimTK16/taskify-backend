@@ -1,4 +1,5 @@
 import { StatusCodes } from 'http-status-codes'
+import { activityLogService } from '~/services/activityLogService'
 import { taskService } from '~/services/taskService'
 
 const createNew = async (req, res, next) => {
@@ -6,6 +7,14 @@ const createNew = async (req, res, next) => {
     const userId = req.user.userId.toString()
     const result = await taskService.createNew(req.body, userId)
 
+    const logData = {
+      userId,
+      taskId: result._id.toString(),
+      taskTitle: result.title,
+      action: 'created'
+    }
+
+    await activityLogService.createNew(logData)
     res.status(StatusCodes.CREATED).json(result)
   } catch (error) {
     next(error)
@@ -16,7 +25,7 @@ const updateTask = async (req, res, next) => {
   try {
     const userId = req.user.userId.toString()
     const taskId = req.params.id
-    const isUnDeleting = req.query.undoing
+    const isUnDeleting = req.query.undoing === 'true'
     const updateData = req.body
     const result = await taskService.update(
       taskId,
@@ -24,6 +33,16 @@ const updateTask = async (req, res, next) => {
       updateData,
       isUnDeleting
     )
+
+    if (!isUnDeleting) {
+      const logData = {
+        userId,
+        taskId,
+        taskTitle: result.title,
+        action: 'updated'
+      }
+      await activityLogService.createNew(logData)
+    }
 
     res.status(StatusCodes.OK).json(result)
   } catch (error) {
@@ -35,6 +54,15 @@ const deleteTask = async (req, res, next) => {
     const userId = req.user.userId.toString()
     const taskId = req.params.id
     const result = await taskService.deleteTask(taskId, userId)
+
+    const logData = {
+      userId,
+      taskId,
+      taskTitle: result.title,
+      action: 'deleted'
+    }
+
+    await activityLogService.createNew(logData)
 
     res.status(StatusCodes.OK).json(result)
   } catch (error) {
@@ -51,6 +79,16 @@ const toggleCompleted = async (req, res, next) => {
       userId,
       req.body.isCompleted
     )
+
+    if (req.body.isCompleted) {
+      const logData = {
+        userId,
+        taskId,
+        taskTitle: result.title,
+        action: 'completed'
+      }
+      await activityLogService.createNew(logData)
+    }
     res.status(StatusCodes.OK).json(result)
   } catch (error) {
     next(error)

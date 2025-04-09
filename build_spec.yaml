@@ -1,4 +1,4 @@
-version: 1.0
+version: 0.1
 component: build
 timeoutInSeconds: 10000
 runAs: root

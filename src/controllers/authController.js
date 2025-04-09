@@ -45,8 +45,7 @@ const logout = async (req, res, next) => {
       httpOnly: true,
       secure: req.secure || env.BUILD_MODE === 'production',
       // sameSite: 'strict',
-      sameSite: env.BUILD_MODE === 'production' ? 'None' : 'Lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      sameSite: env.BUILD_MODE === 'production' ? 'None' : 'Lax'
     })
     res.status(StatusCodes.OK).json({ message: 'Logout successful' })
   } catch (error) {

@@ -5,23 +5,23 @@ runAs: root
 shell: bash
 steps:
   - type: Command
-    name: "Install Dependencies"
-    command: npm install  # Installs both dependencies and devDependencies
+    name: 'Install Dependencies'
+    command: npm install
 
   - type: Command
-    name: "Build Application"
-    command: npm run build  # Transpiles code to `build/` via Babel
+    name: 'Build Application'
+    command: npm run build
 
   - type: Command
-    name: "Package Artifact"
+    name: 'Package Artifact'
     command: |
-      # Include ONLY production files (no `node_modules` or source code)
       zip -r app.zip \
         build/ \
         package.json \
         package-lock.json \
-        .env.production  # Optional: Include production env file if needed
+        .env.production  # Include if you use this file
+
 outputArtifacts:
   - name: taskify-backend-artifact
     type: ZIP
-    location: app.zip  # Matches the zip name above
+    location: app.zip

@@ -1,4 +1,5 @@
 import { StatusCodes } from 'http-status-codes'
+import { env } from '~/config/environment'
 import { userModel } from '~/models/userModel'
 import { authService } from '~/services/authService'
 import ApiError from '~/utils/ApiError'
@@ -24,9 +25,9 @@ const login = async (req, res, next) => {
     const result = await authService.login(email, password)
     res.cookie('refreshToken', result.refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: req.secure || env.BUILD_MODE === 'production',
       // sameSite: 'strict',
-      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+      sameSite: env.BUILD_MODE === 'production' ? 'None' : 'Lax',
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     })
     res.status(StatusCodes.OK).json({
@@ -53,9 +54,9 @@ const loginAsGuest = async (req, res, next) => {
 
     res.cookie('refreshToken', result.refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: req.secure || env.BUILD_MODE === 'production',
       // sameSite: 'strict',
-      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+      sameSite: env.BUILD_MODE === 'production' ? 'None' : 'Lax',
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     })
     res.status(StatusCodes.OK).json({
@@ -86,9 +87,9 @@ const refreshToken = async (req, res, next) => {
     const newRefreshToken = generateRefreshToken(user._id.toString())
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: req.secure || env.BUILD_MODE === 'production',
       // sameSite: 'strict',
-      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+      sameSite: env.BUILD_MODE === 'production' ? 'None' : 'Lax',
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     })
     res.status(StatusCodes.OK).json({

@@ -41,7 +41,13 @@ const login = async (req, res, next) => {
 
 const logout = async (req, res, next) => {
   try {
-    res.clearCookie('refreshToken')
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: req.secure || env.BUILD_MODE === 'production',
+      // sameSite: 'strict',
+      sameSite: env.BUILD_MODE === 'production' ? 'None' : 'Lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    })
     res.status(StatusCodes.OK).json({ message: 'Logout successful' })
   } catch (error) {
     next(error)

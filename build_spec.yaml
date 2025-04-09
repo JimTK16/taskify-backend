@@ -23,5 +23,5 @@ steps:
 
 outputArtifacts:
   - name: taskify-backend-artifact
-    type: ZIP
+    type: BINARY
     location: app.zip

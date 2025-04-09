@@ -1,0 +1,28 @@
+version: 0.1
+component: deployment
+timeoutInSeconds: 10000
+runAs: opc # Default user on OCI Compute VMs
+shell: bash
+steps:
+  - type: Command
+    name: 'Stop Existing Server'
+    command: "sudo pkill -f 'node ./build/src/server.js' || true" # Graceful shutdown
+
+  - type: Command
+    name: 'Unzip Artifact'
+    command: |
+      rm -rf /home/opc/app  # Clean previous deployment
+      mkdir -p /home/opc/app
+      unzip -o app.zip -d /home/opc/app  # OCI places `app.zip` in the working directory
+
+  - type: Command
+    name: 'Install Dependencies'
+    command: |
+      cd /home/opc/app
+      npm install --production  # Install only runtime dependencies
+
+  - type: Command
+    name: 'Start Application'
+    command: |
+      cd /home/opc/app
+      cross-env BUILD_MODE=production node ./build/src/server.js

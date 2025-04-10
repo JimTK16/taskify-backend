@@ -32,10 +32,16 @@ jobs:
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SERVER_WORKDIR: ${{ secrets.SERVER_WORKDIR }}
         run: |
-          ssh $SSH_USER@$SSH_HOST << 'EOF'
-            # Navigate to the project directory
-            cd $SERVER_WORKDIR
-            echo ">>> Navigated to $(pwd)"
+          echo "Runner sees SERVER_WORKDIR_SECRET as: $SERVER_WORKDIR_SECRET" # Debug on runner
+
+        # Pass the variable explicitly into the remote shell's environment
+          ssh $SSH_USER@$SSH_HOST "export SERVER_WORKDIR='${SERVER_WORKDIR_SECRET}'; bash -s" << 'EOF'
+            echo "--- DEBUG START ---"
+            echo "Server received SERVER_WORKDIR as: $SERVER_WORKDIR" # Debug on server
+            echo "Attempting to cd into: $SERVER_WORKDIR"
+            cd "$SERVER_WORKDIR" # Use quotes around the variable just in case
+            echo "Current directory after cd attempt: $(pwd)"
+            echo "--- DEBUG END ---"
 
             # Pull the latest changes from the main branch
             echo ">>> Pulling latest code from origin main..."

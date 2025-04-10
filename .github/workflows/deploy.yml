@@ -45,7 +45,7 @@ jobs:
 
             # Install/update dependencies (important!)
             echo ">>> Installing dependencies..."
-            npm install --production # Use --production if you don't need devDependencies
+            npm ci # Use --production if you don't need devDependencies
 
             # Run the build process (just the build part, not the server start)
             echo ">>> Building application..."

@@ -49,7 +49,7 @@ jobs:
 
             # Run the build process (just the build part, not the server start)
             echo ">>> Building application..."
-            npm run build
+            npm run build && cross-env BUILD_MODE=production
 
             # Restart the application using PM2
             echo ">>> Restarting application with PM2..."

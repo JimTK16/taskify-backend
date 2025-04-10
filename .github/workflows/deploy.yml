@@ -1,19 +1,58 @@
-#!/bin/bash
+name: Deploy Backend to Oracle Cloud
 
-# Change to the project directory
-cd ~/taskify-backend
+# Trigger the workflow on push events to the main branch
+on:
+  push:
+    branches:
+      - main # Or your deployment branch
 
-# Pull the latest changes from GitHub
-git pull origin main
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest # Runner environment provided by GitHub
 
-# Stop the PM2 process
-pm2 stop taskify-backend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4 # Checks out your repository under $GITHUB_WORKSPACE
 
-# Build the application
-npm run build
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-# Start the application with PM2
-pm2 restart taskify-backend --update-env
+      - name: Add SSH host key to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
 
-# Log the deployment
-echo "Deployment completed at $(date)" >> ~/deployment.log
+      - name: Execute deployment script on server
+        env:
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SERVER_WORKDIR: ${{ secrets.SERVER_WORKDIR }}
+        run: |
+          ssh $SSH_USER@$SSH_HOST << 'EOF'
+            # Navigate to the project directory
+            cd $SERVER_WORKDIR
+            echo ">>> Navigated to $(pwd)"
+
+            # Pull the latest changes from the main branch
+            echo ">>> Pulling latest code from origin main..."
+            git checkout main # Ensure we are on the main branch
+            git pull origin main
+
+            # Install/update dependencies (important!)
+            echo ">>> Installing dependencies..."
+            npm install --production # Use --production if you don't need devDependencies
+
+            # Run the build process (just the build part, not the server start)
+            echo ">>> Building application..."
+            npm run build
+
+            # Restart the application using PM2
+            echo ">>> Restarting application with PM2..."
+            pm2 restart taskify-backend || pm2 start ./build/src/server.js --name taskify-backend # Start if not running, restart if running
+
+            echo ">>> Deployment finished!"
+          EOF

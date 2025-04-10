@@ -49,11 +49,13 @@ jobs:
 
             # Run the build process (just the build part, not the server start)
             echo ">>> Building application..."
-            npm run build && cross-env BUILD_MODE=production
+            npm run build
 
             # Restart the application using PM2
             echo ">>> Restarting application with PM2..."
-            pm2 restart taskify-backend || pm2 start ./build/src/server.js --name taskify-backend # Start if not running, restart if running
+            pm2 delete all
+            pm2 start npm --name "taskify-backend" -- run production
+            pm2 save
 
             echo ">>> Deployment finished!"
           EOF

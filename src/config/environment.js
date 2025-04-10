@@ -1,6 +1,6 @@
 import 'dotenv/config'
 
-console.log('test action 2')
+console.log('test action 3')
 
 export const env = {
   MONGODB_URI: process.env.MONGODB_URI,

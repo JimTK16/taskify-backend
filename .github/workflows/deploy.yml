@@ -35,7 +35,7 @@ jobs:
           echo "Runner sees server workdir as $SERVER_WORKDIR"         
           ssh $SSH_USER@$SSH_HOST << 'EOF'
             # Navigate to the project directory
-            cd /home/ubuntu/taskify-backend
+            cd "/home/ubuntu/$SERVER_WORKDIR"
             echo ">>> Navigated to $(pwd)"
 
             # Pull the latest changes from the main branch

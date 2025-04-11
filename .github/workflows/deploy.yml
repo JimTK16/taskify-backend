@@ -32,7 +32,7 @@ jobs:
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SERVER_WORKDIR: ${{ secrets.SERVER_WORKDIR }}
         run: |
-          echo "Runner sees server workdir as $SERVER_WORKDIR"         
+          echo "Runner sees server workdir as $SERVER_WORKDIR ubuntu"         
           ssh $SSH_USER@$SSH_HOST << 'EOF'
             # Navigate to the project directory
             cd "/home/ubuntu/$SERVER_WORKDIR"

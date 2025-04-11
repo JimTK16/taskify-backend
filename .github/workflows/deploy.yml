@@ -33,7 +33,7 @@ jobs:
           SERVER_WORKDIR: ${{ secrets.SERVER_WORKDIR }}
         run: |
           echo "Runner sees server workdir as $SERVER_WORKDIR ubuntu"         
-          ssh $SSH_USER@$SSH_HOST << 'EOF'
+          ssh $SSH_USER@$SSH_HOST "export SERVER_WORKDIR='${SERVER_WORKDIR}'; bash -s" << 'EOF'
             # Navigate to the project directory
             cd "/home/ubuntu/taskify-backend"
             echo ">>> Navigated to $(pwd)"

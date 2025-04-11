@@ -32,10 +32,9 @@ jobs:
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SERVER_WORKDIR: ${{ secrets.SERVER_WORKDIR }}
         run: |
-          echo "Runner sees server workdir as $SERVER_WORKDIR ubuntu"         
           ssh $SSH_USER@$SSH_HOST "export SERVER_WORKDIR='${SERVER_WORKDIR}'; bash -s" << 'EOF'
             # Navigate to the project directory
-            cd "/home/ubuntu/taskify-backend"
+            cd "${SERVER_WORKDIR}"
             echo ">>> Navigated to $(pwd)"
 
             # Pull the latest changes from the main branch
@@ -53,8 +52,8 @@ jobs:
 
             # Restart the application using PM2
             echo ">>> Restarting application with PM2..."
-            pm2 delete all
-            pm2 start npm --name "taskify-backend" -- run production
+            export BUILD_MODE=production
+            pm2 restart taskify-backend || pm2 start ./build/src/server.js --name taskify-backend
             pm2 save
 
             echo ">>> Deployment finished!"
